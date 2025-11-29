@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <stdbool.h>
 #define PORT 12345
 int main(int argc, char const* argv[])
