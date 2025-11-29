@@ -36,7 +36,7 @@ int main(int argc, char const* argv[])
         printf("Enter message to server: ");
         hello [0]= '\0';
         fgets(hello, sizeof(hello), stdin);
-        hello[strlen(hello) - 1] = '\0';
+        hello[strcspn(hello, "\n")] = '\0';
         if(strcmp(hello, "quit") == 0){
             close(client_fd);
             break;
