@@ -36,14 +36,14 @@ int main(int argc, char const* argv[])
         printf("Enter message to server: ");
         hello [0]= '\0';
         fgets(hello, sizeof(hello), stdin);
+        send(client_fd, hello, strlen(hello), 0);;
+        valread = read(client_fd, buffer, 1024 - 1); 
+        printf("%s\n", buffer);
         hello[strcspn(hello, "\n")] = '\0';
         if(strcmp(hello, "quit") == 0){
             close(client_fd);
             break;
         }
-        send(client_fd, hello, strlen(hello), 0);;
-        valread = read(client_fd, buffer, 1024 - 1); 
-        printf("%s\n", buffer);
     }
     
     close(client_fd);
