@@ -1,0 +1,6 @@
+FROM gcc:latest
+WORKDIR /app
+COPY server.c ./
+RUN gcc -o serverC server.c
+EXPOSE 12345
+CMD ["./serverC"]
