@@ -1,9 +1,8 @@
 import socket
 
 server = socket.socket()
-hostname = socket.gethostname()
 port = 12345
-server.bind((hostname, port))
+server.bind(("0.0.0.0", port))
 server.listen()
 print("Server running...")
 con, _ = server.accept()
