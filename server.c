@@ -55,7 +55,8 @@ int main(int argc, char const* argv[])
         for(int i = 0; i < strlen(buffer); i++){
             buffer[i] = toupper(buffer[i]);
         }
-        send(new_socket, buffer, strlen(hello), 0);
+        send(new_socket, buffer, strlen(buffer), 0);
+        buffer [0]= '\0';
     }
     
     close(new_socket);
