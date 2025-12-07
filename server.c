@@ -22,22 +22,26 @@ int main(int argc, char const* argv[])
         zmq_msg_t request;
         zmq_msg_init(&request);
         zmq_msg_recv(&request, respond, 0);
+        size_t data_size = zmq_msg_size(&request);
         char *data = (char *)zmq_msg_data(&request);
-        printf("%s\n", data);
+
+        char buffer[data_size + 1];
+        memcpy(buffer, data, data_size);
+        buffer[data_size] = '\0';
+        printf(" %s\n", buffer);
+        
         zmq_msg_close(&request);
 
         sleep(2);
 
         zmq_msg_t reply;
-        zmq_msg_init_size(&reply, strlen(data));
+        zmq_msg_init_size(&reply, data_size);
 
-        char new_data[strlen(data) + 1];
-        for(int i = 0; i < strlen(data); i++){
-            new_data[i] = toupper(data[i]);
+        for(int i = 0; i < data_size; i++){
+            buffer[i] = toupper(buffer[i]);
         }
-        new_data[strlen(data)] = '\0';
-
-        memcpy(zmq_msg_data(&reply), new_data, strlen(new_data));
+        
+        memcpy(zmq_msg_data(&reply), buffer, data_size);
         zmq_msg_send(&reply, respond, 0);
         zmq_msg_close(&reply);
     }

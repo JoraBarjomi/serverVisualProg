@@ -1,15 +1,16 @@
-import socket
+import zmq 
 
-client = socket.socket()
-hostname = "2.59.161.68"
-# hostname = socket.gethostname()
+context = zmq.Context()
+socket = context.socket(zmq.REQ)
+#hostname = "2.59.161.68"
+hostname = "127.0.0.1"
 port = 12345
-client.connect((hostname, port))
+socket.connect(f"tcp://{hostname}:{port}")
 while True:
     msg = input("Enter message to server: ")
     if msg == "quit": 
         break
-    client.send((msg + "\n").encode())
-    data = client.recv(1024)
-    print("Server sent: ", data.decode())
-client.close()
+    socket.send_string(msg)
+    data = socket.recv_string()
+    print("Server sent: ", data)
+socket.close()
