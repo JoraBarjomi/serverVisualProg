@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
+#include <ctype.h>
 #include <zmq.h>
 
 #define PORT 12345
