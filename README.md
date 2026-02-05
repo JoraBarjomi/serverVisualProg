@@ -5,7 +5,7 @@
 ```
     "serverVisualProg"
     ├── include
-    │   ├── headers.h
+    │   └── headers.h
     ├── src
     │   ├── -
     │   └── main.cpp - entry point
