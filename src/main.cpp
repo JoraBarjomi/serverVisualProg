@@ -13,6 +13,24 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_sdl2.h"
 
+struct location
+{
+    float latitude;
+    float longitude;
+    float altitude;
+    // и т.д.
+};
+
+// void run_gui(locaiton *loc){
+//     // здесь работает GUI поток
+//     // Выводит данные из ГЛОБАЛЬНОЙ структуры location
+// }
+
+// void run_server(locaiton *loc){
+//     // Здесь работает поток серверный
+//     // Записывает данные в ГЛОБАЛЬНУЮ структуру location
+// }
+
 int main(int argc, char *argv[]) {
 
     // 1) Инициализация SDL
