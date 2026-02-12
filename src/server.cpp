@@ -15,7 +15,7 @@ int main(int argc, char const* argv[])
     zmq_bind(socket, "tcp://*:12345");
     std::cout << ("Server running...\n");
 
-    std::ofstream file("./database/data.txt", std::ios::app);
+    std::ofstream file("./database/data.json", std::ios::app);
 
     while (true)
     {
@@ -23,10 +23,12 @@ int main(int argc, char const* argv[])
 
         auto result = socket.recv(request, zmq::recv_flags::none);
         assert(result.value_or(0) != 0);
+        std::cout << "Received data from client...\n";
 
         std::string received_data(static_cast<char*>(request.data()), request.size());
 
         if (file.is_open()) {
+            std::cout << "Write in file...\n"; 
             file << received_data << std::endl;
             file.flush();
         }   
@@ -35,6 +37,7 @@ int main(int argc, char const* argv[])
         std::string date_time = std::asctime(std::localtime(&recv_time));
         std::string kReplyString = "Location received: " + date_time;
         zmq::message_t reply (kReplyString.length());
+        std::cout << "Send reply to client...\n"; 
         memcpy (reply.data(), kReplyString.data(), kReplyString.length());
         socket.send (reply, zmq::send_flags::none);
 

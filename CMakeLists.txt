@@ -11,6 +11,13 @@ set(INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
+    find_path (ZMQ_INCLUDE_DIR zmq.h)
+    find_library( ZMQ_LIBRARY NAMES zmq )
+    set ( ZMQ_LIBRARIES ${ZMQ_LIBRARY} )
+    set ( ZMQ_INCLUDE_DIRS ${ZMQ_INCLUDE_DIR} )
+    
+include ( FindPackageHandleStandardArgs )
+
 # OpenGL/GLEW
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
@@ -39,4 +46,4 @@ target_link_libraries(implot PRIVATE imgui)
 target_compile_options(implot PRIVATE -fPIC)
 
 add_executable(main ${SRC_DIR}/main.cpp)
-target_link_libraries(main PRIVATE imgui implot ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES})
+target_link_libraries(main PRIVATE imgui implot ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${ZMQ_LIBRARIES} zmq)
