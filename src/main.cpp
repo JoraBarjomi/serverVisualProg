@@ -12,16 +12,19 @@
 #include "implot.h"
 
 #include <string>
+#include <nlohmann/json.hpp>
 #include <fstream>
 #include <ctime>
 #include <zmq.hpp>
 
-struct location
-{
+struct location {
+    std::string imei;
     float latitude;
     float longitude;
     float altitude;
-
+    std::string cellIdLte;
+    std::string signalLte;
+    std::string date;
 };
 
 void run_server(location *loc) {
@@ -31,8 +34,6 @@ void run_server(location *loc) {
 
     zmq_bind(socket, "tcp://*:12345");
     std::cout << ("Server running...\n");
-
-    std::ofstream file("../src/database/data.json", std::ios::app);
 
     while (true)
     {
@@ -44,11 +45,20 @@ void run_server(location *loc) {
 
         std::string received_data(static_cast<char*>(request.data()), request.size());
 
-        if (file.is_open()) {
-            std::cout << "Write in file...\n"; 
-            file << received_data << std::endl;
-            file.flush();
-        }   
+        try {
+            nlohmann::json json_data = nlohmann::json::parse(received_data);
+            std::cout << "Parsed data: " << json_data["imei"] << json_data["latitude"] << json_data["longitude"] << json_data["altitude"] << json_data["cellIdLte"] << json_data["signalLte"] << json_data["date"] << std::endl;
+            loc->imei = json_data["imei"];
+            loc->latitude = json_data["latitude"];
+            loc->longitude = json_data["longitude"];
+            loc->altitude = json_data["altitude"];
+            loc->cellIdLte = json_data["cellIdLte"];
+            loc->signalLte = json_data["signalLte"];
+            loc->date = json_data["date"];
+        }
+        catch(const std::exception& e) {
+            std::cerr << "Error while parsing json: " << e.what() << '\n';
+        }                            
 
         std::time_t recv_time = std::time(nullptr);
         std::string date_time = std::asctime(std::localtime(&recv_time));
@@ -59,12 +69,9 @@ void run_server(location *loc) {
         socket.send (reply, zmq::send_flags::none);
 
     }
-    
-    file.close(); 
-
 }
 
-void run_gui(){
+void run_gui(location *loc){
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
     SDL_Window* window = SDL_CreateWindow(
         "Backend start", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -102,9 +109,15 @@ void run_gui(){
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_None);
 
-
-        ImGui::ShowDemoWindow();
-
+        ImGui::Begin("Data from phone:"); 
+        ImGui::Text("Imei = %s", loc->imei.c_str());
+        ImGui::Text("Latitude = %.5f", loc->latitude);
+        ImGui::Text("Longitude = %.5f", loc->longitude);
+        ImGui::Text("Altitude = %.5f", loc->altitude);
+        ImGui::Text("Cell Id = %s", loc->cellIdLte.c_str());
+        ImGui::Text("Signal strength Lte = %s", loc->signalLte.c_str());
+        ImGui::Text("Date = %s", loc->date.c_str());
+        ImGui::End();
 
         ImGui::Render();
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -127,7 +140,7 @@ int main(int argc, char *argv[]) {
     static location locationInfo;
 
     std::thread server_thread(run_server, &locationInfo);
-    std::thread gui_thread(run_gui);
+    std::thread gui_thread(run_gui, &locationInfo);
 
     server_thread.join();
     gui_thread.join();
