@@ -17,13 +17,47 @@
 #include <ctime>
 #include <zmq.hpp>
 
+struct cellInfoLteData {
+    int ci;  
+    int pci;
+    bool isReg;
+    int bandwidth;
+    int earfcn;
+    std::string mcc;
+    std::string mnc;
+    int tac;
+    int asuLevel;
+    int cqi;
+    int rsrp;
+    int rsrq;
+    int rssi;
+    int rssnr; 
+    int dbm;
+    int timingAdvance;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(cellInfoLteData, ci, pci, isReg, bandwidth, earfcn, mcc, mnc, tac, asuLevel, cqi, rsrp, rsrq, rssi, rssnr, dbm, timingAdvance)
+struct cellInfoGSMData {
+    int cid;  
+    int bsic;
+    int arfcn;
+    int lac;
+    std::string mcc;
+    std::string mnc;
+    std::string psc;
+    int rssi; 
+    int dbm;
+    int timingAdvance;
+};
+
 struct location {
     std::string imei;
     float latitude;
     float longitude;
     float altitude;
-    std::string cellIdLte;
-    std::string signalLte;
+    float accuracy;
+    long long ms;
+    cellInfoGSMData cellGSM;
+    std::vector<cellInfoLteData> cellLTE;
     std::string date;
 };
 
@@ -34,6 +68,7 @@ void run_server(location *loc) {
 
     zmq_bind(socket, "tcp://*:12345");
     std::cout << ("Server running...\n");
+    std::ofstream file("../src/database/data.json", std::ios::app);
 
     while (true)
     {
@@ -47,14 +82,27 @@ void run_server(location *loc) {
 
         try {
             nlohmann::json json_data = nlohmann::json::parse(received_data);
-            std::cout << "Parsed data: " << json_data["imei"] << json_data["latitude"] << json_data["longitude"] << json_data["altitude"] << json_data["cellIdLte"] << json_data["signalLte"] << json_data["date"] << std::endl;
+            std::cout << "Parsed data: " << json_data["imei"] << json_data["latitude"] << json_data["longitude"] << json_data["date"] << std::endl;
             loc->imei = json_data["imei"];
+            loc->ms = json_data["timeMS"];
+            loc->date = json_data["date"];
             loc->latitude = json_data["latitude"];
             loc->longitude = json_data["longitude"];
             loc->altitude = json_data["altitude"];
-            loc->cellIdLte = json_data["cellIdLte"];
-            loc->signalLte = json_data["signalLte"];
-            loc->date = json_data["date"];
+            loc->accuracy = json_data["accuracy"];
+ 
+
+           // loc->cellGSM = json_data["cellGSM"];
+            // if (json_data.contains("cellLte") && json_data["cellLte"].is_array()) {
+            //     loc->cellLTE = json_data["cellLte"].get<std::vector<cellInfoLteData>>();
+            // }
+
+
+            if (file.is_open()) {
+                std::cout << "Write in file parsed data...\n"; 
+                file << json_data.dump(4) << std::endl;
+                file.flush();
+            } 
         }
         catch(const std::exception& e) {
             std::cerr << "Error while parsing json: " << e.what() << '\n';
@@ -67,15 +115,15 @@ void run_server(location *loc) {
         std::cout << "Send reply to client...\n"; 
         memcpy (reply.data(), kReplyString.data(), kReplyString.length());
         socket.send (reply, zmq::send_flags::none);
-
     }
+    file.close();
 }
 
 void run_gui(location *loc){
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
     SDL_Window* window = SDL_CreateWindow(
         "Backend start", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        1024, 768, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+        1280, 720, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
 
     ImGui::CreateContext();
@@ -85,7 +133,6 @@ void run_gui(location *loc){
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Включить Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Включить Docking
     // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Включить Multi-Viewport / Platform Windows. Позволяет работать "окнам" вне основного окна. 
-
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init("#version 330");
 
@@ -96,7 +143,7 @@ void run_gui(location *loc){
         // Обработка event'ов (inputs, window resize, mouse moving, etc.)
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-            std::cout << "Processing some event: "<< event.type << " timestamp: " << event.motion.timestamp << std::endl;
+            //std::cout << "Processing some event: "<< event.type << " timestamp: " << event.motion.timestamp << std::endl;
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT) {
                 running = false;
@@ -114,8 +161,8 @@ void run_gui(location *loc){
         ImGui::Text("Latitude = %.5f", loc->latitude);
         ImGui::Text("Longitude = %.5f", loc->longitude);
         ImGui::Text("Altitude = %.5f", loc->altitude);
-        ImGui::Text("Cell Id = %s", loc->cellIdLte.c_str());
-        ImGui::Text("Signal strength Lte = %s", loc->signalLte.c_str());
+        ImGui::Text("Accuracy = %.10f", loc->accuracy);
+        //ImGui::Text("Massiv of data = %d", loc->cellLTE);
         ImGui::Text("Date = %s", loc->date.c_str());
         ImGui::End();
 
