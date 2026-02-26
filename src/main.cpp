@@ -20,7 +20,6 @@
 struct cellInfoLteData {
     int ci;  
     int pci;
-    bool isReg;
     int bandwidth;
     int earfcn;
     std::string mcc;
@@ -32,10 +31,10 @@ struct cellInfoLteData {
     int rsrq;
     int rssi;
     int rssnr; 
-    int dbm;
+    double dbm;
     int timingAdvance;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(cellInfoLteData, ci, pci, isReg, bandwidth, earfcn, mcc, mnc, tac, asuLevel, cqi, rsrp, rsrq, rssi, rssnr, dbm, timingAdvance)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(cellInfoLteData, ci, pci, bandwidth, earfcn, mcc, mnc, tac, asuLevel, cqi, rsrp, rsrq, rssi, rssnr, dbm, timingAdvance)
 struct cellInfoGSMData {
     int cid;  
     int bsic;
@@ -55,10 +54,17 @@ struct location {
     float longitude;
     float altitude;
     float accuracy;
-    long long ms;
-    cellInfoGSMData cellGSM;
+    double ms;
+    int cidIsReg;
+    bool isReg;
+    // cellInfoGSMData cellGSM;
     std::vector<cellInfoLteData> cellLTE;
     std::string date;
+};
+
+struct dataPlot {
+    std::map<int, std::vector<double>> msMap;
+    std::map<int, std::vector<double>> cellMap;
 };
 
 void run_server(location *loc) {
@@ -82,21 +88,28 @@ void run_server(location *loc) {
 
         try {
             nlohmann::json json_data = nlohmann::json::parse(received_data);
-            std::cout << "Parsed data: " << json_data["imei"] << json_data["latitude"] << json_data["longitude"] << json_data["date"] << std::endl;
-            loc->imei = json_data["imei"];
-            loc->ms = json_data["timeMS"];
-            loc->date = json_data["date"];
-            loc->latitude = json_data["latitude"];
-            loc->longitude = json_data["longitude"];
-            loc->altitude = json_data["altitude"];
-            loc->accuracy = json_data["accuracy"];
- 
+            //std::cout << "Parsed data: " << json_data["imei"] << json_data["latitude"] << json_data["longitude"] << json_data["date"] << std::endl;
+            nlohmann::json data1 = json_data["locationInfo"];
+            nlohmann::json data2 = json_data["cellGSM"];
+            nlohmann::json data3 = json_data["cellLte"];
 
-           // loc->cellGSM = json_data["cellGSM"];
-            // if (json_data.contains("cellLte") && json_data["cellLte"].is_array()) {
-            //     loc->cellLTE = json_data["cellLte"].get<std::vector<cellInfoLteData>>();
-            // }
+            loc->imei = data1["imei"];
+            loc->ms = data1["timeMS"];
+            loc->date = data1["date"];
+            loc->latitude = data1["latitude"];
+            loc->longitude = data1["longitude"];
+            loc->altitude = data1["altitude"];
+            loc->accuracy = data1["accuracy"];
+            loc->cidIsReg = data1["cidIsReg"];
+            loc->isReg = data1["IsReg"];
+            
+            if (data3.is_array()) {
+                loc->cellLTE = data3.get<std::vector<cellInfoLteData>>();
+            }
 
+            std::cout <<  json_data["cellLte"].is_array() << std::endl;
+
+            std::cout << "SIZE: " << (loc->cellLTE).size() << "ETO ARRAY? : " << json_data["cellLte"].is_array() << std::endl;
 
             if (file.is_open()) {
                 std::cout << "Write in file parsed data...\n"; 
@@ -119,7 +132,25 @@ void run_server(location *loc) {
     file.close();
 }
 
-void run_gui(location *loc){
+void Demo_LinePlots(location *loc, dataPlot *data) {
+    if (loc) {
+        for (const auto& cell : loc->cellLTE) {
+            data->msMap[cell.ci].push_back(loc->ms);
+            data->cellMap[cell.ci].push_back(cell.dbm);
+        }
+    }
+    if (ImPlot::BeginPlot("Line Plots", ImVec2(-1, 400))) {
+        ImPlot::SetupAxes("Time", "dBm", ImPlotAxisFlags_None, ImPlotAxisFlags_None);
+        for (const auto& [ci, y] : data->cellMap) {
+            const auto& x = data->msMap[ci];
+            ImPlot::PlotLine(std::to_string(ci).c_str(), x.data(), y.data(), (int)y.size());
+        }
+        ImPlot::EndPlot();
+    }
+}
+
+void run_gui(location *loc, dataPlot *data){
+
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
     SDL_Window* window = SDL_CreateWindow(
         "Backend start", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -156,13 +187,20 @@ void run_gui(location *loc){
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_None);
 
+        Demo_LinePlots(loc, data);
+
         ImGui::Begin("Data from phone:"); 
         ImGui::Text("Imei = %s", loc->imei.c_str());
         ImGui::Text("Latitude = %.5f", loc->latitude);
         ImGui::Text("Longitude = %.5f", loc->longitude);
         ImGui::Text("Altitude = %.5f", loc->altitude);
         ImGui::Text("Accuracy = %.10f", loc->accuracy);
-        //ImGui::Text("Massiv of data = %d", loc->cellLTE);
+        ImGui::Text("Connected to cell: %d", loc->cidIsReg);
+
+        for (int i = 0; i < (int)loc->cellLTE.size(); i++) {
+            ImGui::Text("%d. CI = %d dmb = %f", i + 1, loc->cellLTE[i].ci, loc->cellLTE[i].dbm);
+        }
+
         ImGui::Text("Date = %s", loc->date.c_str());
         ImGui::End();
 
@@ -185,9 +223,10 @@ void run_gui(location *loc){
 
 int main(int argc, char *argv[]) {
     static location locationInfo;
+    static dataPlot data;
 
     std::thread server_thread(run_server, &locationInfo);
-    std::thread gui_thread(run_gui, &locationInfo);
+    std::thread gui_thread(run_gui, &locationInfo, &data);
 
     server_thread.join();
     gui_thread.join();
