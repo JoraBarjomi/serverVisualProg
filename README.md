@@ -7,8 +7,9 @@
     ├── include
     │   └── headers.h
     ├── src
-    │   ├── -
-    │   └── main.cpp - entry point
+    │    ├─ database
+    │    │     └─ data.json - all jsons from android app
+    │    └── main.cpp - entry point
     ├── external
     │   ├── imgui
     │   └── implot
