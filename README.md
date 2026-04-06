@@ -1,4 +1,4 @@
-# GeoTracker server
+# GeoTracker Server
 
 GeoTracker Server is a C++ application that receives geodata from Android-client, visualizes it in real-time plots using Dear ImGui and ImPlot, and stores data in Postgresql.
 
@@ -21,6 +21,7 @@ GeoTracker Server is a C++ application that receives geodata from Android-client
     ├── src/          # main.cpp
     ├── data/         # data.json (runtime данные)
     ├── external/     # imgui, implot, dotenv-cpp
+    ├── .env.example
     ├── CMakeLists.txt
     └── README.md
 ```
