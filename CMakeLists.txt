@@ -21,6 +21,7 @@ include ( FindPackageHandleStandardArgs )
 # OpenGL/GLEW
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(PostgreSQL REQUIRED)
 
 include_directories(${INCLUDE_DIR})
 
@@ -45,5 +46,7 @@ target_include_directories(implot PUBLIC ${THIRD_PARTY_DIR}/implot)
 target_link_libraries(implot PRIVATE imgui)
 target_compile_options(implot PRIVATE -fPIC)
 
+add_subdirectory(${THIRD_PARTY_DIR}/dotenv-cpp)
+
 add_executable(main ${SRC_DIR}/main.cpp)
-target_link_libraries(main PRIVATE imgui implot ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${ZMQ_LIBRARIES} zmq)
+target_link_libraries(main PRIVATE imgui implot ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${ZMQ_LIBRARIES} zmq PostgreSQL::PostgreSQL dotenv)

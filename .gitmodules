@@ -5,3 +5,9 @@
 	path = external/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+[submodule "dotenv-cpp"]
+	path = dotenv-cpp
+	url = https://github.com/laserpants/dotenv-cpp
+[submodule "external/dotenv-cpp"]
+	path = external/dotenv-cpp
+	url = https://github.com/laserpants/dotenv-cpp
