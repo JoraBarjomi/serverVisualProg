@@ -38,3 +38,5 @@ GeoTracker Server is a C++ application that receives geodata from Android-client
    cmake .. && make -j4
    ./main
    ```
+   
+   *rename .env.example -> .env use your variables (host, port, database, db_user, db_pasword)*
