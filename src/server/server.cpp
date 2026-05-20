@@ -21,6 +21,7 @@ void run_server(location *loc) {
         std::cout << cnt++ << ": Received data from client: " << result.value() << std::endl;
 
         std::string received_data(static_cast<char*>(request.data()), request.size());
+        std::ofstream file("../src/database/data.json", std::ios::app);
 
         try {
             nlohmann::json json_data = nlohmann::json::parse(received_data);
@@ -40,6 +41,15 @@ void run_server(location *loc) {
             loc->date = data1["date"];
             
             loc->isNew = true;
+
+            if (data3.is_array()) {
+                loc->cellLTE = data3.get<std::vector<cellInfoLteData>>();
+            }
+
+            if (file.is_open()) {
+                file << json_data.dump(4) << std::endl;
+                file.flush();
+            }
 
             int fk = insertIntoAllLocations(loc->con, loc->imei, loc->latitude, loc->longitude, loc->altitude, loc->accuracy, loc->date, loc->ms, loc->isReg, loc->cidIsReg);
 

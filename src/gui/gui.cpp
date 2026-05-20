@@ -1,6 +1,6 @@
 #include "../../include/gui/gui.h"
 
-void run_gui(location *loc, dataPlot *data){
+void run_gui(location *loc, dataPlot *data, std::vector<pciInfo> *dots){
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
     SDL_Window* window = SDL_CreateWindow(
@@ -20,6 +20,8 @@ void run_gui(location *loc, dataPlot *data){
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init("#version 330");
+
+    bool dotsCollected = false;
 
     bool running = true;
     while (running) {
@@ -53,7 +55,13 @@ void run_gui(location *loc, dataPlot *data){
                 if(loc->isNew) {
                     loc->isNew = false;
                 }
-                MapPlot(loc);
+                
+                // if (ImGui::Button("Load Map Data") && !dotsCollected) {
+                //     collectAllDots(loc, dots);
+                //     dotsCollected = true;
+                // }
+
+                MapPlot(loc, dots);
             ImGui::EndTabItem();
             }
             ImGui::EndTabBar();

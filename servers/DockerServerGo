@@ -1,6 +1,0 @@
-FROM golang:1.22
-WORKDIR /app
-COPY server.go ./
-RUN go build -o serverGo server.go
-EXPOSE 12345
-CMD ["./serverGo"]

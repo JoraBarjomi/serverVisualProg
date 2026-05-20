@@ -104,3 +104,55 @@ void selectAllLocations(PGconn *con) {
     }
 
 }
+
+pciInfo selectAllMobileData(PGconn *con, int pci) {
+    pciInfo p;
+    std::string query = "SELECT c.pci, a.lat, a.lon, a.alt, c.earfcn, c.rsrp, c.rsrq, c.rssi, c.rssnr, c.dbm "
+                        "FROM cells_lte c "
+                        "JOIN all_locations a ON c.all_locations_id = a.id "
+                        "WHERE c.pci = " + std::to_string(pci) + ";";
+    PGresult* res = PQexec(con, query.c_str());
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        std::cerr << "\033[31mERROR\033[0m:" << PQresultErrorMessage(res) << std::endl;
+        PQclear(res);
+        return p;
+    }
+
+    int rows = PQntuples(res);  
+
+    p.latitudeV.reserve(rows);
+    p.longitudeV.reserve(rows);
+    p.altitudeV.reserve(rows);
+    p.earfcnV.reserve(rows);
+    p.rsrpV.reserve(rows);
+    p.rsrqV.reserve(rows);
+    p.rssiV.reserve(rows);
+    p.rssnrV.reserve(rows);
+    p.dbmV.reserve(rows);
+
+    for (int i = 0; i < rows; i++) {
+        if (PQgetisnull(res, i, 0)) {
+            continue;
+        }
+
+        p.pci = atoi(PQgetvalue(res, i, 0));
+        double lat = atof(PQgetvalue(res, i, 1));
+        double lon = atof(PQgetvalue(res, i, 2));
+        p.latitudeV.push_back(lat);
+        p.longitudeV.push_back(lon);
+        p.altitudeV.push_back(atof(PQgetvalue(res, i, 3)));
+        p.earfcnV.push_back(atoi(PQgetvalue(res, i, 4)));
+        p.rsrpV.push_back(atoi(PQgetvalue(res, i, 5)));
+        p.rsrqV.push_back(atoi(PQgetvalue(res, i, 6)));
+        p.rssiV.push_back(atoi(PQgetvalue(res, i, 7)));
+        p.rssnrV.push_back(atoi(PQgetvalue(res, i, 8)));
+        p.dbmV.push_back(atoi(PQgetvalue(res, i, 9)));
+    }
+
+    // std::cout << p.pci << " " << p.latitudeV.size() << std::endl;
+    
+    PQclear(res);    
+
+    return p;
+}
+

@@ -61,3 +61,16 @@ struct dataPlot {
     std::map<int, std::vector<double>> rsrqMap;
     std::map<int, std::vector<double>> rssiMap;
 };
+
+struct pciInfo {
+    int pci;
+    std::vector<double> latitudeV;
+    std::vector<double> longitudeV;
+    std::vector<double> altitudeV;
+    std::vector<int> earfcnV;
+    std::vector<int> rsrpV;
+    std::vector<int> rsrqV;
+    std::vector<int> rssiV;
+    std::vector<int> rssnrV;
+    std::vector<int> dbmV;
+};

@@ -1,4 +1,5 @@
 #include "../../include/gui/plots.h"
+#include "../../include/gui/heatmap.h"
 
 double start_ms = -1;
 double t = 0;
@@ -104,10 +105,10 @@ void Dbm_LinePlots(location *loc, dataPlot *data) {
     }
 }
 
-void MapPlot(location *loc) {
-    
+void MapPlot(location *loc, std::vector<pciInfo>* dots) {
+
     float lon = 82.94;
-    float lat = 55.0;
+    float lat = 55.0;   
     float center_x = lon;
     float lat_rad = lat * M_PI / 180.0;
     float mer_y = toMercY(lat_rad);
@@ -169,15 +170,18 @@ void MapPlot(location *loc) {
                                 }
                             }
                     }
-                    ImVec2 bmin{ConvertX(ix, iz), ConvertY(iy + 1, iz)};
-                    ImVec2 bmax{ConvertX(ix + 1, iz), ConvertY(iy, iz)};
+                    ImVec2 bmin{(float)ConvertX(ix, iz), (float)ConvertY(iy + 1, iz)};
+                    ImVec2 bmax{(float)ConvertX(ix + 1, iz), (float)ConvertY(iy, iz)};
 
                     if (Mapa.count(key) && Mapa[key] != 0) {
                         ImPlot::PlotImage(key.c_str(), (void*)(intptr_t)Mapa[key], bmin, bmax);
                     }
                 }
             }   
-        }    
+        }
+
+        RenderHeatmap(*dots);
+
         ImPlot::EndPlot();
 
     }

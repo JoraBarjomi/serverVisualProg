@@ -52,11 +52,13 @@ add_executable(main
                 ${SRC_DIR}/main.cpp 
                 ${SRC_DIR}/database/db_con.cpp 
                 ${SRC_DIR}/database/db_queries.cpp 
-                ${SRC_DIR}/gui/gui.cpp 
+                ${SRC_DIR}/gui/gui.cpp
+                ${SRC_DIR}/gui/heatmap.cpp  
                 ${SRC_DIR}/gui/plots.cpp 
                 ${SRC_DIR}/server/server.cpp 
                 ${SRC_DIR}/tiles/tiles.cpp 
                 ${SRC_DIR}/utils/utils.cpp 
                 )
+target_compile_options(main PRIVATE -O3)
 target_link_libraries(main PRIVATE imgui implot ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${ZMQ_LIBRARIES} ${STB_LIBRARIES} zmq PostgreSQL::PostgreSQL dotenv CURL::libcurl)
 target_include_directories(main PRIVATE ${STB_INCLUDE_DIRS})

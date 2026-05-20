@@ -13,4 +13,4 @@
 #include "../tiles/tiles.h"
 #include "../utils/utils.h"
 
-void run_gui(location *loc, dataPlot *data);
+void run_gui(location *loc, dataPlot *data, std::vector<pciInfo> *dots);

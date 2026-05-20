@@ -13,14 +13,17 @@
 #include "../include/utils/utils.h"
 
 int main(int argc, char *argv[]) {
-    
+
     curl_global_init(CURL_GLOBAL_ALL);
     static location locationInfo;
     static dataPlot data;
+    static std::vector<pciInfo> dots;
     initConnection(&locationInfo);
 
+    collectAllDots(&locationInfo, &dots);
+
     std::thread server_thread(run_server, &locationInfo);
-    std::thread gui_thread(run_gui, &locationInfo, &data);
+    std::thread gui_thread(run_gui, &locationInfo, &data, &dots);
 
     server_thread.join();
     gui_thread.join();

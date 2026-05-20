@@ -1,9 +1,12 @@
+#pragma once
+#include <../include/utils/utils.h>
 #include <../include/models/structs.h>
 #include <../include/tiles/tiles.h>
 
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <mutex>
+#include <vector>
 
 #include "../../external/imgui/imgui.h"
 #include "../../external/implot/implot.h"
@@ -19,4 +22,4 @@ void LinePlots(location *loc, dataPlot *data);
 
 void Dbm_LinePlots(location *loc, dataPlot *data);
 
-void MapPlot(location *loc);
+void MapPlot(location *loc, std::vector<pciInfo>* dots);
